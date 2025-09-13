@@ -15,7 +15,7 @@ def main():
 
     text = (
         "The new Acme X1 laptop, released on 2025-09-10, "
-        "features a 15-inch display and a 3.2 GHz processor. "
+        "features a 15-inch display and a 3.2 GHz processor mantap kali. "
         "You can buy it on our website for $1200."
     )
 
