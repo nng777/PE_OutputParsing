@@ -1,13 +1,17 @@
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-import json
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-def main() -> None:
-    model_name = "Shritama/flanT5-text-json"
+def main():
+    model_name = "microsoft/phi-2"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+
+    #ensure the tokenizer has a padding token to avoid generation warnings
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    model.config.pad_token_id = tokenizer.pad_token_id
 
     text = (
         "The new Acme X1 laptop, released on 2025-09-10, "
@@ -16,27 +20,16 @@ def main() -> None:
     )
 
     prompt = (
-        "Extract the product name, release date, screen size, "
-        "processor speed and price as a JSON object with keys "
-        "product_name, release_date, screen_size, processor_speed and price.\n"
-        f"Text: {text}"
+        "Extract the product name, release date, screen size, processor speed and price from following text:"
+        f" {text} "
+        "Generated output must be displayed as a flat JSON format"
     )
 
     inputs = tokenizer(prompt, return_tensors="pt")
     outputs = model.generate(**inputs, max_new_tokens=128)
-    json_str = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    thestring = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    try:
-        data = json.loads(json_str)
-    except json.JSONDecodeError:
-        print("Model did not return valid JSON: \n", json_str)
-        return
-
-    print("product_name:", data.get("product_name"))
-    print("release_date:", data.get("release_date"))
-    print("screen_size:", data.get("screen_size"))
-    print("processor_speed:", data.get("processor_speed"))
-    print("price:", data.get("price"))
+    print(thestring)
 
 
 if __name__ == "__main__":
